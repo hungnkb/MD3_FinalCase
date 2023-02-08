@@ -39,6 +39,13 @@ const server = http.createServer(async (req, res) => {
             case '/':
                 handlers.showHomePage(req, res);
                 break;
+            case '/register':
+                if (req.method == 'GET') {
+                    handlers.showRegister(req, res);
+                } else {
+                    handlers.register(req,res);
+                }
+                break;
             case '/login':
                 if (req.method == "GET") {
                     handlers.showLogin(req, res);
@@ -49,9 +56,13 @@ const server = http.createServer(async (req, res) => {
             case '/logout':
                 handlers.logout(req, res);
                 break;
+            case '/user-product':
+                handlers.showAllProduct(req, res);
+                break;
             default:
                 res.writeHead(301, { Location: '/' });
-                res.end()
+                res.end();
+                break;
         }
     }
 })

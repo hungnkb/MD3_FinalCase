@@ -4,16 +4,81 @@ const fs = require('fs');
 const qs = require('qs');
 const formidable = require('formidable');
 const query = require('../model/query');
-var cookie = require('cookie');
+const cookie = require('cookie');
+const sessionCheck = require('../model/sessionCheck');
+const checkUserNameEmail = require('../model/checkUsernameEmail');
+
 
 let handlers = {};
 
 handlers.showHomePage = async (req, res) => {
     let html = await getTemplate.readHtml('./view/home.html')
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.write(html);
-    res.end();
+    sessionCheck.check(html, req, res)
 }
+
+handlers.showRegister = async (req, res) => {
+    let html = await getTemplate.readHtml('./view/user/register.html');
+    sessionCheck.check(html, req, res);
+}
+
+handlers.register = async (req, res) => {
+    let data = '';
+
+    req.on('data', chunk => {
+        data += chunk;
+    });
+    req.on('end', async () => {
+        data = qs.parse(data);
+
+        let inputUsername = data.username;
+        let inputEmail = data.email;
+
+
+        let checkUsernameEmail = await checkUserNameEmail.check(inputUsername, inputEmail)
+        let html = await getTemplate.readHtml('./view/user/register.html');
+        switch (checkUsernameEmail) {
+            // result == 0 => Username && Email is not exist
+            // result == 1 => Only Username is exist
+            // result == 2 => Only Email is exist
+            // result == 3 => Username && Email is exist
+            case 0:
+                let sqlAddUser = `call addUser("${data.name}","${inputUsername}", "${data.password}", "${data.phone}", "${inputEmail}", "${data.address}");`
+
+                await query.selectProduct(sqlAddUser);
+                res.writeHead(301, { 'Location': '/login' });
+                res.end();
+                break;
+            case 1:
+                html = html.replace('{isValidUsername}', 'is-invalid');
+                html = html.replace('{feedback-user}', 'This username is exist, please try again.');
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.write(html);
+                res.end();
+                break;
+            case 2:
+                html = html.replace('{isValidEmail}', 'is-invalid');
+                html = html.replace('{feedback-email}', 'This email is exist, please try again.');
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.write(html);
+                res.end();
+                break;
+            case 3:
+                html = html.replace('{isValidEmail}', 'is-invalid');
+                html = html.replace('{isValidUsername}', 'is-invalid');
+                html = html.replace('{feedback-user}', 'This username is exist, please try again.');
+                html = html.replace('{feedback-email}', 'This email is exist, please try again.');
+                res.writeHead(200, { 'Content-Type': 'text/html' });
+                res.write(html);
+                res.end();
+                break;
+        }
+    })
+
+
+    // checkUserNameEmail.checkEmailAvailable();
+
+}
+
 
 handlers.showLogin = async (req, res) => {
     let html = await getTemplate.readHtml('./view/user/login.html')
@@ -75,6 +140,20 @@ handlers.logout = (req, res) => {
     })
 }
 
+handlers.showAllProduct = async (req, res) => {
+    let sql = `call showAllProduct()`;
+    let product = await query.selectProduct(sql);
+    let htmlP = '';
+    product[0].forEach(p => {
+        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img src="/public/images/${p.imgsrc}"></td><td><a href="addCart?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Add to cart</button></a></td></tr>
+        `
+    });
+    let html = await getTemplate.readHtml('./view/user/showProduct.html');
+    html = html.replace('{product-list}', htmlP);
+
+    sessionCheck.check(html, req, res)
+
+}
 
 
 
