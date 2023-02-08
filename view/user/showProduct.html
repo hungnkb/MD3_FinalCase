@@ -19,13 +19,13 @@
     <!-- Navigation-->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container px-4 px-lg-5">
-            <a class="navbar-brand" href="/">H2 SHOP</a>
+            <a class="navbar-brand" href="#!">Start Bootstrap</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="#!">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="#!">About</a></li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
@@ -44,38 +44,52 @@
                     </button>
                 </form>
 
-                <a href="/register"><button {register-hidden} type="button" class="btn btn-outline-warning"
+                <a href="/register"><button {hidden-register} type="button" class="btn btn-outline-warning"
                         style="margin-left: 5px;">Signup</button></a>
             </div>
 
-            <a href="/login"><button {login-hidden} type="button" class="btn btn-outline-success"
+            <a href="/login"><button {hidden-login} type="button" class="btn btn-outline-success"
                     style="margin-left: 5px;">Login</button></a>
 
-            <a href="/logout"><button hidden type="button" class="btn btn-outline-dark"
+            <a href="/logout"><button {hidden-logout} type="button" class="btn btn-outline-dark"
                     style="margin-left: 5px;">logout</button></a>
         </div>
         </div>
         </div>
     </nav>
-
-        <div class="container px-4 px-lg-5 mt-5 col-4">
-            <form method="POST">
-                <div class="form-group">
-                    <label for="">Username</label>
-                    <input type="text" class="form-control" name="username">
-                </div>
-                <div class="form-group">
-                    <label for="exampleInputPassword1">Password</label>
-                    <input type="password" class="form-control" id="exampleInputPassword1" name="password">
-                </div>
-                <button type="submit" class="btn btn-primary mt-3">Sign in</button>
-            </form>
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Tru`m G4^'u Po^ng</h1>
+                <p class="lead fw-normal text-white-50 mb-0">O*? D4^y cO4' g4^'u pO^ng ng0n ho*n nyc cua? p4.n </p>
+            </div>
         </div>
- 
+    </header>
+    <!-- Section-->
+
+        <div class="container col-8">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Price</th>    
+                        <th scope="col">Picture</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {product-list}
+                </tbody>
+            </table>
+        </div>
+
 
 
     <!-- Footer-->
-    <footer style="margin-top: 445px;" class="py-5 bg-dark">
+    <footer class="py-5 bg-dark">
         <div class="container">
             <p class="m-0 text-center text-white">Copyright &copy; H2 SHOP 2023</p>
         </div>
