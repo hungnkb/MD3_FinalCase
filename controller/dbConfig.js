@@ -6,7 +6,7 @@ class db {
             host: 'localhost',
             user: 'root',
             password: '123456',
-            database: '',
+            database: 'supermarket',
             charset: 'utf8_general_ci'
         });
     }

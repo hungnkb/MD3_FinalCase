@@ -24,7 +24,6 @@ const server = http.createServer(async (req, res) => {
     let id = qs.parse(getUrl.query).id;
     let searchName = qs.parse(getUrl.query).name;
     let extensionType = getUrl.pathname.split(".")[1];
-    console.log(req.url);
 
     if (mimeType[extensionType] !== undefined) {
         fs.readFile(__dirname + getUrl.pathname, (err, data) => {
@@ -47,7 +46,9 @@ const server = http.createServer(async (req, res) => {
                     handlers.login(req, res);
                 }
                 break;
-
+            case '/logout':
+                handlers.logout(req, res);
+                break;
             default:
                 res.writeHead(301, { Location: '/' });
                 res.end()
