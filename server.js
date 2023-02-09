@@ -5,6 +5,7 @@ const PORT = 5000;
 const { handlers } = require('./controller/handlers');
 const fs = require('fs');
 const getTemplate = require('./model/getTemplate');
+const sessionCheck = require('./model/sessionCheck');
 
 let mimeType = {
     "png": "image/png",
@@ -43,7 +44,7 @@ const server = http.createServer(async (req, res) => {
                 if (req.method == 'GET') {
                     handlers.showRegister(req, res);
                 } else {
-                    handlers.register(req,res);
+                    handlers.register(req, res);
                 }
                 break;
             case '/login':
@@ -59,6 +60,23 @@ const server = http.createServer(async (req, res) => {
             case '/user-product':
                 handlers.showAllProduct(req, res);
                 break;
+            case '/admin-product':
+                let checkRole = await sessionCheck.checkRoleUser(req, res);
+                if (checkRole == 'admin') {
+                    handlers.showAllProductAdmin(req, res);
+                } else {
+                    handlers.showAllProduct(req, res);
+                }
+                break;
+            case '/addproduct':
+                if (req.method == 'GET') {
+                    handlers.showAddProductAdmin(req, res)
+                } else {
+                    handlers.addProductAdmin(req, res);
+                }
+                break;
+            case '/delete':
+                    handlers.deleteProductAdmin(id, req,res)         
             default:
                 res.writeHead(301, { Location: '/' });
                 res.end();

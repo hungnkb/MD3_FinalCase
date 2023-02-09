@@ -28,18 +28,18 @@
                     <li class="nav-item"><a class="nav-link active" aria-current="page" href="/">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="#!">About</a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                        <a hidden class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="/user-product">All Products</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a hidden admin class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                        <a class="nav-link dropdown-toggle" id="navbarDropdown" href="" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">Admin Manager</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/user-product">User Manager</a></li>
-                            <li><a class="dropdown-item" href="/user-product">Product Manager</a></li>
+                            <li><a class="dropdown-item" href="/admin-user">User Manager</a></li>
+                            <li><a class="dropdown-item" href="/admin-product">Product Manager</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -74,29 +74,52 @@
         </div>
     </header>
     <!-- Section-->
+    <div class="container" >
+        <form class="row g-3" enctype="multipart/form-data" method="POST">
+            <div class="d-inline col md-4">
+                <label for="validationServerUsername" class="form-label">Name</label>
+                <div class="input-group has-validation">
+                    <input type="text" class="form-control {isValidName}" name="name" id="validationServerUsername"
+                        aria-describedby="inputGroupPrepend3 validationServerUsernameFeedback" required>
+                    <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                        {feedback-name}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label for="" class="form-label">Amount</label>
+                <input type="number" class="form-control" id="" name="amount">
+            </div>
+            <div class="col-md-4">
+                <label for="" class="form-label">Category</label>
+                <select name="idCategory" class="form-select" aria-label="Default select example">
+                    <option selected></option>
+                    <option value="4">S</option>
+                    <option value="5">M</option>
+                    <option value="6">L</option>
+                    <option value="7">XL</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <div class="input-group mb-3">
+                    <input name="imgsrc" type="file" class="form-control" id="inputGroupFile02">
 
-    <div class="container col-8">
-        <table class="table">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Category</th>
-                    <th scope="col">Price</th>
-                    <th scope="col">Picture</th>
-                    <th scope="col">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {product-list}
-            </tbody>
-        </table>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+
+
+
     </div>
 
 
 
     <!-- Footer-->
-    <footer class="py-5 bg-dark">
+    <footer class="py-5 bg-dark" style="margin-top: 187px;">
         <div class="container">
             <p class="m-0 text-center text-white">Copyright &copy; H2 SHOP 2023</p>
         </div>
