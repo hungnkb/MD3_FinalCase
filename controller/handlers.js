@@ -7,6 +7,8 @@ const query = require('../model/query');
 const cookie = require('cookie');
 const sessionCheck = require('../model/sessionCheck');
 const checkUserNameEmail = require('../model/checkUsernameEmail');
+const modalAddCart = require('../model/modalAddCart');
+
 
 
 let mimeType = {
@@ -171,7 +173,16 @@ handlers.showAllProduct = async (req, res) => {
     let product = await query.selectProduct(sql);
     let htmlP = '';
     product[0].forEach(p => {
-        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td><td><a href="addCart?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Add to cart</button></a></td></tr>
+        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td>
+
+        <td>
+        
+        ${modalAddCart.str(p.idProduct, p.name, p.nameCategories)}
+        
+        </td>
+
+
+        </tr>
         `
     });
     let html = await getTemplate.readHtml('./view/user/showProduct.html');
@@ -186,7 +197,8 @@ handlers.showAllProductAdmin = async (req, res) => {
     let product = await query.selectProduct(sql);
     let htmlP = '';
     for (let p of product[0]) {
-        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td><td><a href="edit?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Edit</button></a>  <a href="delete?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Delete</button></a></td></tr>
+        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td><td><a href="edit?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Edit</button></a>  <a href="delete?id=${p.idProduct}">
+        <button type="button"class="btn btn-dark btn-sm">Delete</button></a></td></tr>
         `
     }
     let html = await getTemplate.readHtml('./view/admin/showProduct.html');
@@ -199,31 +211,80 @@ handlers.showAllProductAdmin = async (req, res) => {
     res.end();
 }
 
-handlers.showEditProductAdmin = async (req, res) => {
+handlers.showEditProductAdmin = async (id, req, res) => {
+    let sql = `select idProduct, name, amount, imgsrc, idCategories from product where idProduct = ${id}`
+    let data = await query.selectProduct(sql);
+    let name = data[0].name;
+    let amount = data[0].amount;
+    let imgsrc = data[0].imgsrc;
+    let idCategories = data[0].idCategories;
+
+    let html = await getTemplate.readHtml('./view/admin/editProduct.html');
+    html = html.replace("{name-default}", name);
+    html = html.replace("{amount-default}", amount);
+    html = html.replace("{imgsrc-default}", imgsrc);
+    html = html.replace("{idCategory-default}", idCategories);
+
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.write(html);
+    res.end();
+}
+
+handlers.editProductAdmin = async (id, req, res) => {
+
     let form = new formidable.IncomingForm();
     form.uploadDir = './public/images/';
     form.parse(req, (err, fields, files) => {
         if (err) {
             return res.end(err.message);
         } else {
-            let tmpPath = files.img.filepath;
-            let newPath = (form.uploadDir + files.img.originalFilename).split(" ").join('');
-            let newImg = files.img.originalFilename.split(" ").join('');
+            let tmpPath = files.imgsrc.filepath;
+            let newPath = (form.uploadDir + files.imgsrc.originalFilename).split(" ").join('');
+            let newImg = files.imgsrc.originalFilename.split(" ").join('');
+
             fs.rename(tmpPath, newPath, async (err) => {
                 if (err) {
                     throw err;
                 } else {
-                    let fileType = files.img.mimetype;
+
+                    let fileType = files.imgsrc.mimetype;
                     let mimeTypes = ["image/jpeg", "image/jpg", "image/png"];
 
                     if (mimeTypes.indexOf(fileType) == -1) {
-                        res.writeHead(200, { 'Content-Type': 'text/html' });
+                        res.writeHead(400, { 'Content-Type': 'text/html' });
+
                         return res.end('File is not correct format: png, jpeg, jpg');
                     } else {
-                        let sqlEditItem = `call editItem(${id},'${fields.inputName}', '${fields.inputPrice}', '${newImg}')`;
-                        await productQuery.selectProduct(sqlEditItem);
-                        res.writeHead(301, { 'Location': '/product' });
-                        res.end();
+                        let sqlFirstProduct = `select name from product where idProduct = ${id}`
+                        let nameFirst = await query.selectProduct(sqlFirstProduct);
+                        let sqlAllProduct = `select * from product where not name = '${nameFirst}'`
+                        let allProduct = await query.selectProduct(sqlAllProduct);
+
+                        let isNameExist = false;
+                        for (let i of allProduct) {
+                            console.log(fields.name, i.name);
+                            if (fields.name == i.name) {
+                                isNameExist = true;
+                                break;
+                            }
+                        }
+
+                        if (!isNameExist) {
+                            let sqlAddProduct = `call addProduct("${fields.name}", "${fields.amount}","${newImg}", "${fields.idCategory}")`
+                            await query.selectProduct(sqlAddProduct);
+                            html = await getTemplate.readHtml('./view/admin/showProduct.html');
+
+                            res.writeHead(301, { 'Location': '/admin-product' });
+                            res.write(html);
+                            res.end();
+                        } else {
+                            html = await getTemplate.readHtml('./view/admin/addProduct.html');
+                            html = html.replace('{isValidName}', 'is-invalid');
+                            html = html.replace('{feedback-name}', 'This product is exist. Please try again');
+                            res.writeHead(400, { 'Content-Type': 'text/html' });
+                            res.write(html);
+                            res.end();
+                        }
                     }
                 }
             })
@@ -298,6 +359,35 @@ handlers.deleteProductAdmin = async (id, req, res) => {
     res.writeHead(301, { 'Location': '/admin-product' });
     res.end();
 }
+
+handlers.addCart = async (req, res) => {
+    let data = '';
+    req.on('data', chunk => {
+        data += chunk;
+    })
+    req.on('end', async () => {
+        data = qs.parse(data);
+        let cookies = req.headers.cookie;
+        let account = cookie.parse(cookies).u_user;
+
+        let nameCategory = data.category;
+        let category = await query.selectProduct(`select idCategories from categories where nameCategories = '${nameCategory}'`);
+        let idCategory = category[0].idCategories
+        
+        let statusPayment = 'cart'
+        let sqlCartOrder = `call addCartOrder('${account}', '${statusPayment}')`
+        let dataCartOrder = await query.selectProduct(sqlCartOrder);
+        
+        let sqlCartOrderDetail = (`call addCartOrderDetail('${dataCartOrder.idOrder}', '${data.id}', '${data.amount}')`);
+        await query.selectProduct(sqlCartOrderDetail);
+        res.writeHead(301, {'Location': '/user-product'});
+        res.end();
+    })
+    res.end();
+}
+
+
+
 
 
 

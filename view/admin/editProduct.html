@@ -74,15 +74,53 @@
         </div>
     </header>
     <!-- Section-->
+    <div class="container">
+        <form class="row g-3" enctype="multipart/form-data" method="POST">
+            <div class="d-inline col md-4">
+                <label for="validationServerUsername" class="form-label">Name</label>
+                <div class="input-group has-validation">
+                    <input type="text" class="form-control {isValidName}" placeholder="{name-default}" name="name"
+                        id="validationServerUsername"
+                        aria-describedby="inputGroupPrepend3 validationServerUsernameFeedback" required>
+                    <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                        {feedback-name}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label for="" class="form-label">Amount</label>
+                <input type="number" class="form-control" id="" placeholder="{amount-default}" name="amount">
+            </div>
+            <div class="col-md-4">
+                <label for="" class="form-label">Category</label>
+                <select name="idCategory" class="form-select" aria-label="Default select example">
+                    <option selected>{idCategory-default}</option>
+                    <option value="4">S</option>
+                    <option value="5">M</option>
+                    <option value="6">L</option>
+                    <option value="7">XL</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <div class="input-group mb-3">
+                    <input default="{default-imgsrc}"" name="imgsrc" type="file" class="form-control" id="inputGroupFile02">
 
-    <div class="container col-8">
-    
+                </div>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+
+
+
     </div>
 
 
 
     <!-- Footer-->
-    <footer class="py-5 bg-dark">
+    <footer class="py-5 bg-dark" style="margin-top: 187px;">
         <div class="container">
             <p class="m-0 text-center text-white">Copyright &copy; H2 SHOP 2023</p>
         </div>
