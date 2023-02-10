@@ -31,51 +31,73 @@
                         <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/home-product">All Products</a></li>
-
+                            <li><a class="dropdown-item" href="/user-product">All Products</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a hidden admin class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">Admin Manager</a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="/user-product">User Manager</a></li>
+                            <li><a class="dropdown-item" href="/user-product">Product Manager</a></li>
                         </ul>
                     </li>
                 </ul>
                 <form action="/showCart" class="d-flex">
-                    <button class="btn btn-outline-dark" {cart-hidden} type="submit">
+                    <button class="btn btn-outline-dark" {hidden-cart} type="submit">
                         <i class="bi-cart-fill me-1"></i>
                         Cart
-                        <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
+                        <span class="badge bg-dark text-white ms-1 rounded-pill">{cart-count}</span>
                     </button>
                 </form>
 
-                <a href="/register"><button {register-hidden} type="button" class="btn btn-outline-warning"
+                <a href="/register"><button {hidden-register} type="button" class="btn btn-outline-warning"
                         style="margin-left: 5px;">Signup</button></a>
             </div>
 
-            <a href="/login"><button {login-hidden} type="button" class="btn btn-outline-success"
+            <a href="/login"><button {hidden-login} type="button" class="btn btn-outline-success"
                     style="margin-left: 5px;">Login</button></a>
 
-            <a href="/logout"><button hidden type="button" class="btn btn-outline-dark"
+            <a href="/logout"><button {hidden-logout} type="button" class="btn btn-outline-dark"
                     style="margin-left: 5px;">logout</button></a>
         </div>
         </div>
         </div>
     </nav>
-
-        <div class="container px-4 px-lg-5 mt-5 col-4">
-            <form method="POST">
-                <div class="form-group">
-                    <label for="">Username</label>
-                    <input type="text" class="form-control" name="username">
-                </div>
-                <div class="form-group">
-                    <label for="exampleInputPassword1">Password</label>
-                    <input type="password" class="form-control" id="exampleInputPassword1" name="password">
-                </div>
-                <button type="submit" class="btn btn-primary mt-3">Sign in</button>
-            </form>
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Tru`m G4^'u Po^ng</h1>
+                <p class="lead fw-normal text-white-50 mb-0">O*? D4^y cO4' g4^'u pO^ng ng0n ho*n nyc cua? p4.n </p>
+            </div>
         </div>
- 
+    </header>
+    <!-- Section-->
+
+    <div class="container col-8">
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">ID Order</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Picture</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {product-list}
+            </tbody>
+        </table>
+    </div>
+
 
 
     <!-- Footer-->
-    <footer style="margin-top: 445px;" class="py-5 bg-dark">
+    <footer class="py-5 bg-dark">
         <div class="container">
             <p class="m-0 text-center text-white">Copyright &copy; H2 SHOP 2023</p>
         </div>

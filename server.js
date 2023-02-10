@@ -87,6 +87,9 @@ const server = http.createServer(async (req, res) => {
                     handlers.editProductAdmin(id, req, res);
                 }
                 break;
+            case '/cart':
+                handlers.showCart(req, res);
+                break;
             case '/addCart':
                 if (req.method == 'POST') {
                     handlers.addCart(req, res);

@@ -103,7 +103,6 @@ handlers.register = async (req, res) => {
                 break;
         }
     })
-    // checkUserNameEmail.checkEmailAvailable();
 
 }
 
@@ -360,6 +359,44 @@ handlers.deleteProductAdmin = async (id, req, res) => {
     res.end();
 }
 
+handlers.showCart = async (req, res) => {
+    let cookies = req.headers.cookie;
+    let account = cookie.parse(cookies).u_user;
+    let idAccount = await query.selectProduct(`select idAccount from account where username = '${account}'`);
+    idAccount = idAccount[0].idAccount;
+    let html = await getTemplate.readHtml('./view/user/cart.html');
+    let dataCartSql = `select T.idOrder, T.idProduct, T.name, T.nameCategories, T.imgsrc, T.amountProduct, T.statusPayment from (
+        select tOrder.idAccount ,tOrder.idOrder, od.idProduct, p.name, p.imgsrc, c.nameCategories, od.amountProduct, torder.statusPayment  from tOrder
+        join orderDetail as od on tOrder.idOrder = od.idOrder
+        join product as p on od.idProduct = p.idProduct
+        join categories as c on c.idCategories = p.idCategories
+        join account as a on a.idAccount = tOrder.idAccount
+        ) as T where T.idAccount = '${idAccount}' and T.statusPayment = 'cart';`
+    let htmlP = ''
+    query.selectProduct(dataCartSql)
+        .then((result) => {
+            for (let i = 0; i < result.length; i++) {
+                htmlP += `
+                <tr><td>${result[0].idOrder}</td><td>${result[0].name}</td><td>${result[0].nameCategories}</td><td>${result[0].imgsrc}</td><td>${result[0].amountProduct}</td><td>${result[0].statusPayment}</td></tr>
+                `
+            }
+            // result[0].forEach(e => {
+
+            // })
+            html = html.replace('{cart-count}', result.length);
+            html = html.replace('{product-list}', htmlP);
+        
+            sessionCheck.check(html, req, res);
+
+        })
+        .catch(() => {
+            html = html.replace('{cart-count}', 0);
+            html = html.replace('{product-list}', '');
+            sessionCheck.check(html, req, res);
+        })
+}
+
+
 handlers.addCart = async (req, res) => {
     let data = '';
     req.on('data', chunk => {
@@ -370,20 +407,35 @@ handlers.addCart = async (req, res) => {
         let cookies = req.headers.cookie;
         let account = cookie.parse(cookies).u_user;
 
-        let nameCategory = data.category;
-        let category = await query.selectProduct(`select idCategories from categories where nameCategories = '${nameCategory}'`);
-        let idCategory = category[0].idCategories
-        
-        let statusPayment = 'cart'
-        let sqlCartOrder = `call addCartOrder('${account}', '${statusPayment}')`
-        let dataCartOrder = await query.selectProduct(sqlCartOrder);
-        
-        let sqlCartOrderDetail = (`call addCartOrderDetail('${dataCartOrder.idOrder}', '${data.id}', '${data.amount}')`);
-        await query.selectProduct(sqlCartOrderDetail);
-        res.writeHead(301, {'Location': '/user-product'});
-        res.end();
+        let idAccount = await query.selectProduct(`select idAccount from account where username = '${account}'`);
+        idAccount = idAccount[0].idAccount;
+        let dataOrderSql = `select * from tOrder where idAccount = '${idAccount}'`;
+        let statusPayment = 'cart';
+        let dataOrder = query.selectProduct(dataOrderSql).then(async (result) => {
+
+            if (result.length == 0 || (result.length > 0 && result.statusPayment == 'paid')) {
+
+                let cartOrderSql = `call addCartOrder(${idAccount}, 'cart')`;
+                await query.selectProduct(cartOrderSql);
+                let idOrder = await query.selectProduct(`select idOrder from torder`);
+                idOrder = idOrder[0].idOrder;
+                let cartOrderDetailSql = `call addCartOrderDetail('${idOrder}', '${data.id}', '${data.amount}')`;
+                await query.selectProduct(cartOrderDetailSql);
+                res.writeHead(301, { 'Location': '/user-product' });
+                res.end();
+            } else if (result.length > 0 && result.statusPayment == 'cart') {
+                let oldAmount = result[result.length - 1].amountProduct;
+                let newAmount = oldAmount + amount;
+                let addAmountSql = `update orderDetail set amountProduct = ${newAmount}`
+                await query.selectProduct(addAmountSql);
+                res.writeHead(301, { 'Location': '/user-product' });
+                console.log(333);
+                res.end();
+            }
+        });
+
     })
-    res.end();
+
 }
 
 
