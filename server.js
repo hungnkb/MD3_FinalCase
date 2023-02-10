@@ -60,7 +60,11 @@ const server = http.createServer(async (req, res) => {
                 handlers.logout(req, res);
                 break;
             case '/user-product':
-                handlers.showAllProduct(req, res);
+                if (req.method == 'GET') {
+                    handlers.showAllProduct(req, res);
+                } else {
+                    handlers.addCart(req, res);
+                }
                 break;
             case '/admin-product':
                 let checkRole = await sessionCheck.checkRoleUser(req, res);
@@ -89,6 +93,7 @@ const server = http.createServer(async (req, res) => {
                 break;
             case '/cart':
                 handlers.showCart(req, res);
+
                 break;
             case '/addCart':
                 if (req.method == 'POST') {
