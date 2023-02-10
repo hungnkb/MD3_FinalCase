@@ -6,14 +6,14 @@ class modalAddCart {
     <!-- Button trigger modal -->
     <form method="GET">
     
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#id-${id}">
       Add to cart
     </button>
     </form>
     
     <!-- Modal -->
     <form action="/addCart" method="POST">
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="id-${id}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
@@ -49,3 +49,5 @@ class modalAddCart {
 }
 
 module.exports = modalAddCart;
+
+

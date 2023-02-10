@@ -171,18 +171,12 @@ handlers.showAllProduct = async (req, res) => {
     let sql = `call showAllProduct()`;
     let product = await query.selectProduct(sql);
     let htmlP = '';
+
     product[0].forEach(p => {
+
         htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td>
+        <td>${modalAddCart.str(p.idProduct, p.name, p.nameCategories)}</td></tr>`
 
-        <td>
-        
-        ${modalAddCart.str(p.idProduct, p.name, p.nameCategories)}
-        
-        </td>
-
-
-        </tr>
-        `
     });
     let html = await getTemplate.readHtml('./view/user/showProduct.html');
     html = html.replace('{product-list}', htmlP);
@@ -261,7 +255,7 @@ handlers.editProductAdmin = async (id, req, res) => {
 
                         let isNameExist = false;
                         for (let i of allProduct) {
-                            console.log(fields.name, i.name);
+
                             if (fields.name == i.name) {
                                 isNameExist = true;
                                 break;
@@ -375,17 +369,16 @@ handlers.showCart = async (req, res) => {
     let htmlP = ''
     query.selectProduct(dataCartSql)
         .then((result) => {
+        
             for (let i = 0; i < result.length; i++) {
                 htmlP += `
-                <tr><td>${result[0].idOrder}</td><td>${result[0].name}</td><td>${result[0].nameCategories}</td><td>${result[0].imgsrc}</td><td>${result[0].amountProduct}</td><td>${result[0].statusPayment}</td></tr>
+                <tr><td>${result[i].idOrder}</td><td>${result[i].name}</td><td>${result[i].nameCategories}</td><td>${result[i].imgsrc}</td><td>${result[i].amountProduct}</td><td>${result[i].statusPayment}</td></tr>
                 `
             }
-            // result[0].forEach(e => {
 
-            // })
             html = html.replace('{cart-count}', result.length);
             html = html.replace('{product-list}', htmlP);
-        
+
             sessionCheck.check(html, req, res);
 
         })
@@ -410,11 +403,8 @@ handlers.addCart = async (req, res) => {
         let idAccount = await query.selectProduct(`select idAccount from account where username = '${account}'`);
         idAccount = idAccount[0].idAccount;
         let dataOrderSql = `select * from tOrder where idAccount = '${idAccount}'`;
-        let statusPayment = 'cart';
         let dataOrder = query.selectProduct(dataOrderSql).then(async (result) => {
-
             if (result.length == 0 || (result.length > 0 && result.statusPayment == 'paid')) {
-
                 let cartOrderSql = `call addCartOrder(${idAccount}, 'cart')`;
                 await query.selectProduct(cartOrderSql);
                 let idOrder = await query.selectProduct(`select idOrder from torder`);
@@ -423,19 +413,39 @@ handlers.addCart = async (req, res) => {
                 await query.selectProduct(cartOrderDetailSql);
                 res.writeHead(301, { 'Location': '/user-product' });
                 res.end();
-            } else if (result.length > 0 && result.statusPayment == 'cart') {
-                let oldAmount = result[result.length - 1].amountProduct;
-                let newAmount = oldAmount + amount;
-                let addAmountSql = `update orderDetail set amountProduct = ${newAmount}`
-                await query.selectProduct(addAmountSql);
-                res.writeHead(301, { 'Location': '/user-product' });
-                console.log(333);
-                res.end();
+            } else if (result.length > 0 && result[result.length - 1].statusPayment == 'cart') {
+                let idOrder2 = await query.selectProduct(`select idOrder from torder where idAccount = ${idAccount}`);
+                idOrder2 = idOrder2[0].idOrder;
+                let idProducts = await query.selectProduct(`select idProduct from orderdetail where idOrder = ${idOrder2}`)
+
+                let isIdProductExist = true;
+                for (let i = 0; i < idProducts.length; i++) {
+                    if (idProducts[i].idProduct == data.id) {
+                        isIdProductExist = true;
+                        break;
+                    } else {
+                        isIdProductExist = false;
+                    }
+                }
+              
+                if (isIdProductExist == false) {
+                    
+                    let addOrderDetail = `call addCartOrderDetail('${idOrder2}', '${data.id}', '${data.amount}')`;
+                    await query.selectProduct(addOrderDetail);
+                    res.writeHead(301, { 'Location': '/cart' });
+                    res.end();
+                } else {
+                
+                    let idOrder = await query.selectProduct(`select idOrder from torder where idAccount = ${idAccount} and statusPayment = 'cart'`);
+                    idOrder = idOrder[0].idOrder;
+                    let addProductInCartSql = `update orderDetail set amountProduct = (amountProduct + '${data.amount}') where idOrder = '${idOrder}'`;
+                    await query.selectProduct(addProductInCartSql);
+                    res.writeHead(301, { 'Location': '/cart' });
+                    res.end();
+                }
             }
         });
-
     })
-
 }
 
 
