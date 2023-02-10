@@ -372,7 +372,7 @@ handlers.showCart = async (req, res) => {
         
             for (let i = 0; i < result.length; i++) {
                 htmlP += `
-                <tr><td>${result[i].idOrder}</td><td>${result[i].name}</td><td>${result[i].nameCategories}</td><td>${result[i].imgsrc}</td><td>${result[i].amountProduct}</td><td>${result[i].statusPayment}</td></tr>
+                <tr><td>${result[i].idOrder}</td><td>${result[i].name}</td><td>${result[i].nameCategories}</td><td><img src="${result[i].imgsrc}"></td><td>${result[i].amountProduct}</td><td>${result[i].statusPayment}</td></tr>
                 `
             }
 
@@ -427,7 +427,6 @@ handlers.addCart = async (req, res) => {
                         isIdProductExist = false;
                     }
                 }
-              
                 if (isIdProductExist == false) {
                     
                     let addOrderDetail = `call addCartOrderDetail('${idOrder2}', '${data.id}', '${data.amount}')`;
