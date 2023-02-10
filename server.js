@@ -100,6 +100,14 @@ const server = http.createServer(async (req, res) => {
                     handlers.addCart(req, res);
                 }
                 break;
+            case '/edit-cart':
+                if (req.method == 'GET') {
+                    // handlers.editCart(req, res);
+                } else {
+                    handlers.editCart(req, res);
+                }
+                break;
+
             default:
                 res.writeHead(301, { Location: '/' });
                 res.end();
