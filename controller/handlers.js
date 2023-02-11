@@ -400,7 +400,7 @@ handlers.showCart = async (req, res) => {
             join orderdetail as od on od.idOrder = o.idOrder
             join product as p on od.idProduct = p.idProduct
             join categories as c on p.idCategories = c.idCategories
-            where o.idOrder = ${result[result.length-1].idOrder}`
+            where o.idOrder = ${result[result.length - 1].idOrder}`
 
             let payments = await query.selectProduct(paymentSql);
             let payment = 0;
@@ -521,7 +521,59 @@ handlers.payment = async (idOrder, req, res) => {
     res.end();
 }
 
+handlers.financialReport = async (req, res) => {
+    // get data
+    let dataSql = `select o.idOrder, p.idProduct, p.name, c.nameCategories, p.imgsrc, c.costCategories, c.priceCategories, od.amountProduct, (c.costCategories * od.amountProduct) as totalCost, (c.priceCategories * od.amountProduct) as totalRevenue from torder as o
+    join orderdetail as od on o.idOrder = od.idOrder
+    join product as p on p.idProduct = od.idProduct
+    join categories as c on c.idCategories = p.idCategories
+    where o.statuspayment = 'paid'`
+    let resultReport = await query.selectProduct(dataSql);
 
+
+    // render
+    let htmlData = ''
+    for (let i = 0; i < resultReport.length; i++) {
+        htmlData += `
+        <tr>
+            <td>${resultReport[i].idOrder}</td>
+            <td>${resultReport[i].idProduct}</td>
+            <td>${resultReport[i].name}</td>
+            <td>${resultReport[i].nameCategories}</td>
+            <td><img style="width: 200px;" src="/public/images/${resultReport[i].imgsrc}"></td>
+            <td>${resultReport[i].costCategories}</td>
+            <td>${resultReport[i].priceCategories}</td>
+            <td>${resultReport[i].amountProduct}</td>
+            <td>${resultReport[i].totalCost}</td>
+            <td>${resultReport[i].totalRevenue}</td>
+        </tr>
+        `
+    }
+    let html = await getTemplate.readHtml('./view/admin/revenue.html');
+    try {
+        let checkRole = await sessionCheck.checkRoleUser(req);
+        let totalRevenue = 0;
+        let totalProfit = 0;
+        if (checkRole == 'admin') {
+            for (let i = 0; i < resultReport.length; i++) {
+                totalRevenue += resultReport[i].totalRevenue;
+                totalProfit += resultReport[i].totalCost
+            }
+            html = html.replace('{report-profit}', totalProfit)
+            html = html.replace('{report-revenue}', totalRevenue)
+            html = html.replace('{hidden-cart}', 'hidden');
+            html = html.replace('{report-list}', htmlData);
+            sessionCheck.check(html, req, res);
+        } else {
+            res.writeHead(301, { 'Location': '/' });
+            res.end();
+        }
+    }
+    catch {
+        res.writeHead(301, { 'Location': '/' });
+        res.end();
+    }
+}
 
 module.exports = { handlers };
 

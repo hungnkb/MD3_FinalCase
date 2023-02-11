@@ -43,7 +43,6 @@
                             <li><a class="dropdown-item" href="/admin-financial-report">Financial Report</a></li>
                         </ul>
                     </li>
-                   
                 </ul>
                 <form class="d-flex">
                     <button class="btn btn-outline-dark" {hidden-cart} type="submit">
@@ -77,25 +76,30 @@
     </header>
     <!-- Section-->
 
-    <div class="container col-8">
-        <form action="" method="GET">
-            <a href="/addproduct"><button type="button" class="btn btn-dark mt-1 mb-1">Add</button></a>
-        </form>
-
-
-        <table class="table">
+    <div class="container col-8 mt-1">
+             <table class="table">
             <thead class="table-dark">
                 <tr>
-                    <th scope="col">ID</th>
+                    <th scope="col">ID Order</th>
+                    <th scope="col">ID Product</th>
                     <th scope="col">Name</th>
                     <th scope="col">Category</th>
-                    <th scope="col">Price</th>
                     <th scope="col">Picture</th>
-                    <th scope="col">Action</th>
+                    <th scope="col">Cost</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Total Cost</th>
+                    <th scope="col">Revenue</th>
                 </tr>
             </thead>
             <tbody>
-                {product-list}
+                {report-list}
+                <tr>
+                    <td colspan=""><h6>Total Revenue</h6></td>
+                    <td>${report-revenue}</td>
+                    <td><h6>Total Profit</h6></td>
+                    <td>${report-profit}</td>
+                </tr>
             </tbody>
         </table>
     </div>

@@ -108,11 +108,13 @@ const server = http.createServer(async (req, res) => {
                 }
                 break;
             case '/payment':
-              
                 if (req.method == 'GET') {
                     let idOrder = getUrl.query.idOrder;
-                    handlers.payment(idOrder , req, res);
+                    handlers.payment(idOrder, req, res);
                 }
+                break;
+            case '/admin-financial-report':
+                handlers.financialReport(req, res)
                 break;
             default:
                 res.writeHead(301, { Location: '/' });
