@@ -40,15 +40,11 @@ class sessionCheck {
             res.write(html);
             res.end();
         }
-
-
-
     }
 
     static checkRoleUser = async (req) => {
         return new Promise((resolve, reject) => {
             let cookies = req.headers.cookie;
-
             //role == 0 => admin;
             // role == 1 => user;
             if (cookies) {
