@@ -107,7 +107,13 @@ const server = http.createServer(async (req, res) => {
                     handlers.editCart(req, res);
                 }
                 break;
-
+            case '/payment':
+              
+                if (req.method == 'GET') {
+                    let idOrder = getUrl.query.idOrder;
+                    handlers.payment(idOrder , req, res);
+                }
+                break;
             default:
                 res.writeHead(301, { Location: '/' });
                 res.end();

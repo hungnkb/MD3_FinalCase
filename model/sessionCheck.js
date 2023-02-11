@@ -76,9 +76,11 @@ class sessionCheck {
                     if (fs.existsSync(path)) {
                         resolve('exist')
                     } else {
-                        reject('notExist')
+                        reject('notExist');
                     }
                 }
+            } else {
+                reject('notExist');
             }
         })
     }
