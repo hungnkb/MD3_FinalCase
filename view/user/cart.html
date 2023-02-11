@@ -69,13 +69,14 @@
         <div class="container px-4 px-lg-5 my-5">
             <div class="text-center text-white">
                 <h1 class="display-4 fw-bolder">Tru`m G4^'u Po^ng</h1>
-                <p class="lead fw-normal text-white-50 mb-0">O*? D4^y cO4' g4^'u pO^ng ng0n ho*n nyc cua? p4.n </p>
+                <p class="lead fw-normal text-white-50 mb-0">O*? D4^y cO4' g4^'u pO^ng ng0n ho*n nyc cua? p4.n  </p>
             </div>
         </div>
     </header>
     <!-- Section-->
 
     <div class="container col-8">
+      
         <table class="table">
             <thead class="thead-dark">
                 <tr>
@@ -91,8 +92,10 @@
             </thead>
             <tbody>
                 {product-list}
+                <tr><td colspan="7" style="text-align: center;">{modal-payment}</td><td>${total-cart}</td></tr>
             </tbody>
         </table>
+
     </div>
 
 
@@ -108,5 +111,4 @@
     <!-- Core theme JS-->
     <script src="public/src/js/scripts.js"></script>
 </body>
-
 </html>
