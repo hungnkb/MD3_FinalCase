@@ -31,6 +31,24 @@ let handlers = {};
 
 handlers.showHomePage = async (req, res) => {
     let html = '';
+    let productsSql = `
+    select p.idProduct, p.imgsrc, p.name, c.priceCategories, c.nameCategories from product as p
+    join categories as c on p.idCategories = c.idCategories
+    `
+    let products = await query.selectProduct(productsSql);
+    let htmlProducts = ``
+    for (let i = 0; i < products.length; i++) {
+        htmlProducts += `
+        <div class="card m-2" style="width: 18rem;">
+                <img style="width: '200px'" src="/public/images/${products[i].imgsrc}" class="card-img-top" alt="...">
+                <div class="card-body">
+                    <h5 class="card-title">${products[i].name}</h5>
+                    <p class="card-text">${products[i].priceCategories.toLocaleString('en-US')}</p>
+                    <div>${modalAddCart.str(products[i].idProduct, products[i].name, products[i].nameCategories)}
+                </div>
+            </div>
+        `
+    }
     sessionCheck.checkSession(req, res).then(async () => {
         let cookies = req.headers.cookie;
         let account = cookie.parse(cookies).u_user;
@@ -42,9 +60,11 @@ handlers.showHomePage = async (req, res) => {
             res.writeHead(301, { 'Location': '/admin-product' });
             res.end()
         } else {
+
             let cart = await checkCart.check(idAccount);
             html = await getTemplate.readHtml('./view/home.html');
             html = html.replace('{cart-count}', cart.length);
+            html = html.replace('{list-product}', htmlProducts);
             sessionCheck.check(html, req, res);
         }
     })
@@ -52,6 +72,7 @@ handlers.showHomePage = async (req, res) => {
             html = await getTemplate.readHtml('./view/home.html');
             html = html.replace('{hidden-logout}', 'hidden');
             html = html.replace('{hidden-cart}', 'hidden');
+            html = html.replace('{list-product', htmlProducts);
             sessionCheck.check(html, req, res);
         })
 }
@@ -387,7 +408,7 @@ handlers.showAllUserAdmin = async (req, res) => {
             <td>${userList[i].Address}</td>
             <td>user</td>
             <td>
-            <a href="/editUser?id=${userList[i].idAccount}">
+            <a href="/showEditUser?id=${userList[i].idAccount}">
             <button type="button"class="btn btn-dark btn-sm">Edit</button></a>  
             <a href="/deleteUser?id=${userList[i].idAccount}">
             <button type="button"class="btn btn-dark btn-sm">Delete</button></a>
@@ -406,7 +427,7 @@ handlers.showAllUserAdmin = async (req, res) => {
             <td>${userList[i].Address}</td>
             <td>admin</td>
             <td>
-            <a href="/editUser?id=${userList[i].idAccount}">
+            <a href="/showEditUser?id=${userList[i].idAccount}">
             <button type="button"class="btn btn-dark btn-sm">Edit</button></a>  
             <a href="/deleteUser?id=${userList[i].idAccount}">
             <button type="button"class="btn btn-dark btn-sm">Delete</button></a>
@@ -421,13 +442,14 @@ handlers.showAllUserAdmin = async (req, res) => {
     sessionCheck.check(html, req, res)
 }
 
-handlers.editUser = async (editIdAccount, req, res) => {
+handlers.showEditUser = async (editIdAccount, req, res) => {
     let userDataSql = `select * from account where idAccount = ${editIdAccount}`;
     let user = await query.selectProduct(userDataSql);
     user = user[0];
-    console.log(user);
+
     let html = await getTemplate.readHtml('./view/admin/editUser.html');
-    html = html.replace('{default-username}', user.name);
+    html = html.replace('{default-username}', user.UserName);
+    html = html.replace('{default-name}', user.name);
     html = html.replace('{default-password}', user.Password);
     html = html.replace('{default-email}', user.Email);
     html = html.replace('{default-phonenumber}', user.phoneNumber);
@@ -439,6 +461,65 @@ handlers.editUser = async (editIdAccount, req, res) => {
         html = html.replace('{default-role}', user.role);
     }
     sessionCheck.check(html, req, res);
+}
+
+handlers.editUser = async (editIdAccount, req, res) => {
+    let userDataSql = `select * from account where idAccount = ${editIdAccount}`;
+    let user = await query.selectProduct(userDataSql);
+    user = user[0];
+
+
+    let data = ''
+    req.on('data', chunk => {
+        data += chunk;
+    })
+    req.on('end', async () => {
+
+        data = qs.parse(data);
+
+        let html = await getTemplate.readHtml('./view/admin/editUser.html');
+
+        let resultCheckUsernameEmail = await checkUserNameEmail.checkEditUser(editIdAccount, data.username, data.email);
+        // result == 0 => Username && Email is not exist
+        // result == 1 => Only Username is exist
+        // result == 2 => Only Email is exist
+        // result == 3 => Username && Email is exist
+
+        if (resultCheckUsernameEmail == 0) {
+            let editUserSql = `update account 
+            set name = '${data.name}', UserName = '${data.username}', Password = '${data.password}', email = '${data.email}', phoneNumber = '${data.phone}',
+            role = ${data.role}, address = '${data.address}' where idAccount = ${editIdAccount}`
+            await query.selectProduct(editUserSql);
+            res.writeHead(301, { 'Location': '/admin-user-manager' });
+            return res.end();
+        } else if (resultCheckUsernameEmail == 1) {
+            html = html.replace('{isValidUsername}', 'is-invalid');
+            html = html.replace('{feedback-user}', 'This Username is exist, please try again.');
+        } else if (resultCheckUsernameEmail == 2) {
+            html = html.replace('{isValidEmail}', 'is-invalid');
+            html = html.replace('{feedback-email}', 'This Email is exist, please try again.');
+        } else if (resultCheckUsernameEmail == 3) {
+            html = html.replace('{isValidUsername}', 'is-invalid');
+            html = html.replace('{feedback-user}', 'This Username is exist, please try again.');
+            html = html.replace('{isValidEmail}', 'is-invalid');
+            html = html.replace('{feedback-email}', 'This Email is exist, please try again.');
+        }
+
+        html = html.replace('{default-username}', data.username);
+        html = html.replace('{default-name}', data.name);
+        html = html.replace('{default-password}', data.password);
+        html = html.replace('{default-email}', data.email);
+        html = html.replace('{default-phonenumber}', data.phone);
+        html = html.replace('{default-address}', data.address);
+        if (data.role == 0) {
+            html = html.replace('{default-role}', 'Admin');
+            html = html.replace('{default-value-role}', data.role);
+        } else {
+            html = html.replace('{default-role}', data.role);
+        }
+
+        sessionCheck.check(html, req, res);
+    })
 }
 
 handlers.showCart = async (req, res) => {
@@ -491,7 +572,7 @@ handlers.showCart = async (req, res) => {
             html = html.replace('{cart-count}', result.length);
             html = html.replace('{product-list}', htmlP);
             html = html.replace('{modal-payment}', htmlPayment);
-            html = html.replace('{total-cart}', payment)
+            html = html.replace('{total-cart}', payment.toLocaleString('en-US'))
 
             sessionCheck.check(html, req, res);
 
@@ -594,6 +675,14 @@ handlers.editCart = async (req, res) => {
 }
 
 handlers.payment = async (idOrder, req, res) => {
+
+    // update Storage
+    let updateStorageSql = `select idProduct, amountProduct from orderDetail where idOrder = ${idOrder}`;
+    let dataUpdateStorage = await query.selectProduct(updateStorageSql);
+    dataUpdateStorage = dataUpdateStorage[0];
+    let editStorageSql = `update product set amount = (amount - ${dataUpdateStorage.amountProduct}) where idProduct = ${dataUpdateStorage.idProduct}`;
+
+    // update Status Payment
     let updateStatusPaymentSql = `update tOrder set statusPayment = 'paid' where idOrder = ${idOrder}`;
     await query.selectProduct(updateStatusPaymentSql);
     res.writeHead(301, { 'Location': '/cart' });
