@@ -91,6 +91,17 @@ const server = http.createServer(async (req, res) => {
                     handlers.editProductAdmin(id, req, res);
                 }
                 break;
+            case '/admin-user-manager':
+                if (req.method == 'GET') {
+                    handlers.showAllUserAdmin(req, res);
+                }
+                break;
+            case '/editUser':
+                let editIdAccount = getUrl.query.id;
+                if (req.method == 'GET') {
+                    handlers.editUser(editIdAccount, req,res);
+                }
+                break;
             case '/cart':
                 handlers.showCart(req, res);
 

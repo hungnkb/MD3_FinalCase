@@ -28,26 +28,27 @@
                     <li class="nav-item"><a class="nav-link active" aria-current="page" href="/">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="#!">About</a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                        <a hidden class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="/user-product">All Products</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a hidden admin class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                        <a class="nav-link dropdown-toggle" id="navbarDropdown" href="" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">Admin Manager</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/user-product">User Manager</a></li>
-                            <li><a class="dropdown-item" href="/user-product">Product Manager</a></li>
+                            <li><a class="dropdown-item" href="/admin-user-manager">User Manager</a></li>
+                            <li><a class="dropdown-item" href="/admin-product">Product Manager</a></li>
+                            <li><a class="dropdown-item" href="/admin-financial-report">Financial Report</a></li>
                         </ul>
                     </li>
                 </ul>
-                <form action="/cart" class="d-flex">
-                    <button class="btn btn-outline-dark" {hidden-cart} type="submit">
+                <form class="d-flex">
+                    <button class="btn btn-outline-dark" hidden type="submit">
                         <i class="bi-cart-fill me-1"></i>
                         Cart
-                        <span class="badge bg-dark text-white ms-1 rounded-pill">{cart-count}</span>
+                        <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
                     </button>
                 </form>
 
@@ -68,27 +69,29 @@
     <header class="bg-dark py-5">
         <div class="container px-4 px-lg-5 my-5">
             <div class="text-center text-white">
-                <h1 class="display-4 fw-bolder">Tru`m G4^'u Po^ng</h1>
-                <p class="lead fw-normal text-white-50 mb-0">O*? D4^y cO4' g4^'u pO^ng ng0n ho*n nyc cua? p4.n </p>
+                <h1 class="display-4 fw-bolder">Trùm Gấu Bông</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Gấu bông xịn sò</p>
             </div>
         </div>
     </header>
     <!-- Section-->
 
     <div class="container col-8">
-        <table class="table">
-            <thead class="thead-dark">
+        <table class="table mt-1">
+            <thead class="table-dark">
                 <tr>
-                    <th scope="col">ID</th>
                     <th scope="col">Name</th>
-                    <th scope="col">Category</th>
-                    <th scope="col">Price</th>
-                    <th scope="col">Picture</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Password</th>
+                    <th scope="col">Phone Number</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Address</th>
+                    <th scope="col">Role</th>
                     <th scope="col">Action</th>
                 </tr>
             </thead>
             <tbody>
-                {product-list}
+                {user-list}
             </tbody>
         </table>
     </div>
@@ -106,7 +109,7 @@
     <!-- Core theme JS-->
     <script src="public/src/js/scripts.js"></script>
 
-    
+
 </body>
 
 </html>

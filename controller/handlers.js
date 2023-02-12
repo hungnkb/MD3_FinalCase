@@ -10,6 +10,7 @@ const checkUserNameEmail = require('../model/checkUsernameEmail');
 const modalAddCart = require('../model/modalAddCart');
 const modalEditCart = require('../model/modalEditCart');
 const modalPaymentCart = require('../model/modalPaymentCart');
+const checkCart = require('../model/checkCart');
 
 
 
@@ -31,13 +32,19 @@ let handlers = {};
 handlers.showHomePage = async (req, res) => {
     let html = '';
     sessionCheck.checkSession(req, res).then(async () => {
+        let cookies = req.headers.cookie;
+        let account = cookie.parse(cookies).u_user;
+        let idAccount = await query.selectProduct(`select idAccount from account where username = '${account}'`);
+        idAccount = idAccount[0].idAccount;
+
         let checkRole = await sessionCheck.checkRoleUser(req);
         if (checkRole == 'admin') {
             res.writeHead(301, { 'Location': '/admin-product' });
             res.end()
         } else {
-            html = html.replace('{hidden-cart}', 'hidden');
+            let cart = await checkCart.check(idAccount);
             html = await getTemplate.readHtml('./view/home.html');
+            html = html.replace('{cart-count}', cart.length);
             sessionCheck.check(html, req, res);
         }
     })
@@ -177,12 +184,18 @@ handlers.showAllProduct = async (req, res) => {
 
     product[0].forEach(p => {
 
-        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td>
+        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories.toLocaleString('en-US')}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td>
         <td>${modalAddCart.str(p.idProduct, p.name, p.nameCategories)}</td></tr>`
 
     });
+    let cookies = req.headers.cookie;
+    let account = cookie.parse(cookies).u_user;
+    let idAccount = await query.selectProduct(`select idAccount from account where username = '${account}'`);
+    idAccount = idAccount[0].idAccount;
+    let cart = await checkCart.check(idAccount);
     let html = await getTemplate.readHtml('./view/user/showProduct.html');
     html = html.replace('{product-list}', htmlP);
+    html = html.replace('{cart-count}', cart.length);
 
     sessionCheck.check(html, req, res)
 
@@ -193,7 +206,9 @@ handlers.showAllProductAdmin = async (req, res) => {
     let product = await query.selectProduct(sql);
     let htmlP = '';
     for (let p of product[0]) {
-        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td><td><a href="edit?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Edit</button></a>  <a href="delete?id=${p.idProduct}">
+        htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories.toLocaleString('en-US')}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td>
+        <td>${p.amount}</td>
+        <td><a href="edit?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Edit</button></a>  <a href="delete?id=${p.idProduct}">
         <button type="button"class="btn btn-dark btn-sm">Delete</button></a></td></tr>
         `
     }
@@ -356,6 +371,76 @@ handlers.deleteProductAdmin = async (id, req, res) => {
     res.end();
 }
 
+handlers.showAllUserAdmin = async (req, res) => {
+    let userListSql = `select * from account`;
+    let userList = await query.selectProduct(userListSql);
+    let htmlU = '';
+    for (let i = 0; i < userList.length; i++) {
+        if (userList[i].role == 0) {
+            htmlU += `
+            <tr>
+            <td>${userList[i].name}</td>
+            <td>${userList[i].UserName}</td>
+            <td>${userList[i].Password}</td>
+            <td>${userList[i].phoneNumber}</td>
+            <td>${userList[i].Email}</td>
+            <td>${userList[i].Address}</td>
+            <td>user</td>
+            <td>
+            <a href="/editUser?id=${userList[i].idAccount}">
+            <button type="button"class="btn btn-dark btn-sm">Edit</button></a>  
+            <a href="/deleteUser?id=${userList[i].idAccount}">
+            <button type="button"class="btn btn-dark btn-sm">Delete</button></a>
+            </td>
+            </tr>
+            `
+        }
+        else {
+            htmlU += `
+            <tr>
+            <td>${userList[i].name}</td>
+            <td>${userList[i].UserName}</td>
+            <td>${userList[i].Password}</td>
+            <td>${userList[i].phoneNumber}</td>
+            <td>${userList[i].Email}</td>
+            <td>${userList[i].Address}</td>
+            <td>admin</td>
+            <td>
+            <a href="/editUser?id=${userList[i].idAccount}">
+            <button type="button"class="btn btn-dark btn-sm">Edit</button></a>  
+            <a href="/deleteUser?id=${userList[i].idAccount}">
+            <button type="button"class="btn btn-dark btn-sm">Delete</button></a>
+            </td>
+            </tr>
+            `
+        }
+
+    }
+    let html = await getTemplate.readHtml('./view/admin/showUser.html');
+    html = html.replace('{user-list}', htmlU);
+    sessionCheck.check(html, req, res)
+}
+
+handlers.editUser = async (editIdAccount, req, res) => {
+    let userDataSql = `select * from account where idAccount = ${editIdAccount}`;
+    let user = await query.selectProduct(userDataSql);
+    user = user[0];
+    console.log(user);
+    let html = await getTemplate.readHtml('./view/admin/editUser.html');
+    html = html.replace('{default-username}', user.name);
+    html = html.replace('{default-password}', user.Password);
+    html = html.replace('{default-email}', user.Email);
+    html = html.replace('{default-phonenumber}', user.phoneNumber);
+    html = html.replace('{default-address}', user.Address);
+    if (user.role == 0) {
+        html = html.replace('{default-role}', 'Admin');
+        html = html.replace('{default-value-role}', user.role);
+    } else {
+        html = html.replace('{default-role}', user.role);
+    }
+    sessionCheck.check(html, req, res);
+}
+
 handlers.showCart = async (req, res) => {
     let cookies = req.headers.cookie;
     let account = cookie.parse(cookies).u_user;
@@ -390,12 +475,6 @@ handlers.showCart = async (req, res) => {
                 `
             }
 
-            // begin total
-            // let paymentSql = `select o.idOrder, sum(amountProduct * priceCategories) as total from torder as o
-            // join orderdetail as od on od.idProduct = od.idProduct
-            // join product as p on od.idProduct = p.idProduct
-            // join categories as c on p.idCategories = c.idCategories
-            // group by o.idOrder`
             let paymentSql = `select o.idOrder, od.idProduct, (od.amountProduct * c.priceCategories) as subtotal from torder as o 
             join orderdetail as od on od.idOrder = o.idOrder
             join product as p on od.idProduct = p.idProduct
@@ -537,15 +616,14 @@ handlers.financialReport = async (req, res) => {
         htmlData += `
         <tr>
             <td>${resultReport[i].idOrder}</td>
-            <td>${resultReport[i].idProduct}</td>
             <td>${resultReport[i].name}</td>
             <td>${resultReport[i].nameCategories}</td>
             <td><img style="width: 200px;" src="/public/images/${resultReport[i].imgsrc}"></td>
-            <td>${resultReport[i].costCategories}</td>
-            <td>${resultReport[i].priceCategories}</td>
+            <td>${resultReport[i].costCategories.toLocaleString('en-US')}</td>
+            <td>${resultReport[i].priceCategories.toLocaleString('en-US')}</td>
             <td>${resultReport[i].amountProduct}</td>
-            <td>${resultReport[i].totalCost}</td>
-            <td>${resultReport[i].totalRevenue}</td>
+            <td>${resultReport[i].totalCost.toLocaleString('en-US')}</td>
+            <td>${resultReport[i].totalRevenue.toLocaleString('en-US')}</td>
         </tr>
         `
     }
@@ -559,8 +637,8 @@ handlers.financialReport = async (req, res) => {
                 totalRevenue += resultReport[i].totalRevenue;
                 totalProfit += resultReport[i].totalCost
             }
-            html = html.replace('{report-profit}', totalProfit)
-            html = html.replace('{report-revenue}', totalRevenue)
+            html = html.replace('{report-profit}', totalProfit.toLocaleString('en-US'))
+            html = html.replace('{report-revenue}', totalRevenue.toLocaleString('en-US'))
             html = html.replace('{hidden-cart}', 'hidden');
             html = html.replace('{report-list}', htmlData);
             sessionCheck.check(html, req, res);

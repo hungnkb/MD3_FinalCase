@@ -38,18 +38,18 @@
                         <a class="nav-link dropdown-toggle" id="navbarDropdown" href="" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">Admin Manager</a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/admin-user-manager">User Manager</a></li>
+                            <li><a class="dropdown-item" href="/admin-user">User Manager</a></li>
                             <li><a class="dropdown-item" href="/admin-product">Product Manager</a></li>
                             <li><a class="dropdown-item" href="/admin-financial-report">Financial Report</a></li>
                         </ul>
                     </li>
-
+                  
                 </ul>
                 <form class="d-flex">
-                    <button class="btn btn-outline-dark" {hidden-cart} type="submit">
+                    <button class="btn btn-outline-dark" hidden type="submit">
                         <i class="bi-cart-fill me-1"></i>
                         Cart
-                        <span class="badge bg-dark text-white ms-1 rounded-pill">{cart-count}</span>
+                        <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
                     </button>
                 </form>
 
@@ -66,45 +66,78 @@
         </div>
         </div>
     </nav>
-    <!-- Header-->
-    <header class="bg-dark py-5">
-        <div class="container px-4 px-lg-5 my-5">
-            <div class="text-center text-white">
-                <h1 class="display-4 fw-bolder">Trùm Gấu Bông</h1>
-                <p class="lead fw-normal text-white-50 mb-0">Gấu Bông Xịn Xò</p>
+
+    <div class="container px-4 px-lg-5 mt-5 col-6">
+        <form method="POST">
+            <div class="row">
+                <div class="">
+
+                    <div class="d-inline col mb-3">
+                        <label for="validationServerUsername" class="form-label">Username</label>
+                        <div class="input-group has-validation">
+                            <input value="{default-username}" type="text" class="form-control {isValidUsername}" name="username" id="validationServerUsername"
+                                aria-describedby="inputGroupPrepend3 validationServerUsernameFeedback" required>
+                            <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                                {feedback-user}
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="d-inline col mb-3">
+                        <label for="exampleInputPassword1" class="form-label">Password</label>
+                        <input value="{default-password}" type="password" class="form-control" id="exampleInputPassword1" name="password">
+                    </div>
+                </div>
             </div>
-        </div>
-    </header>
-    <!-- Section-->
+            <div class="row">
+                <div class="col mb-3">
+                    <label for="validationServerUsername" class="form-label">Email</label>
+                    <div class="input-group has-validation">
+                        <input value="{default-email}" type="text" name="email" class="form-control {isValidEmail}"
+                            id="validationServerUsername"
+                            aria-describedby="inputGroupPrepend3 validationServerUsernameFeedback" required>
+                        <div id="validationServerUsernameFeedback" class="invalid-feedback">
+                            {feedback-email}
+                        </div>
+                    </div>
 
-    <div class="container col-8">
-        <form action="" method="GET">
-            <a href="/addproduct"><button type="button" class="btn btn-dark mt-1 mb-1">Add</button></a>
+                </div>
+                <div class="row">
+                    <div class="col mb-3">
+                        <label for="" class="form-label">Phone Number</label>
+                        <input value="{default-phonenumber}" type="text" class="form-control" id="" aria-describedby="" name="phone">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col mb-3">
+                        <label for="" class="form-label">Address</label>
+                        <label for=""></label>
+                        <textarea class="form-control" name="address" id="" rows="3">{default-address}</textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <select class="form-select col mb-3">
+                        <option value="{default-value-role}" selected>{default-role}</option>
+                        <option value="0">Admin</option>
+                        <option value="1">User</option>
+                      </select>
+                    </div>
+                <div class="row">
+                    <div class="col mb-3">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>
+            </div>
+
+
         </form>
-
-
-        <table class="table">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">ID</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Category</th>
-                    <th scope="col">Price</th>
-                    <th scope="col">Picture</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {product-list}
-            </tbody>
-        </table>
     </div>
 
 
 
     <!-- Footer-->
-    <footer class="py-5 bg-dark">
+    <footer style="margin-top: 445px;" class="py-5 bg-dark">
         <div class="container">
             <p class="m-0 text-center text-white">Copyright &copy; H2 SHOP 2023</p>
         </div>
