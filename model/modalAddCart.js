@@ -1,5 +1,5 @@
 class modalAddCart {
-    static str = (id, name, category) => {
+    static str = (id, name, category, maxAmount) => {
         return `
 
 
@@ -31,7 +31,7 @@ class modalAddCart {
           <input readonly="true" type="text" value="${category}" id="" name="category" class="form-control" aria-describedby="passwordHelpBlock">
          
           <label for="" class="form-label">Amount</label>
-          <input type="number" min="1" id="" name="amount" class="form-control" aria-describedby="passwordHelpBlock">
+          <input type="number" min="1" max="${maxAmount}" id="" name="amount" class="form-control" aria-describedby="passwordHelpBlock">
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Close</button>

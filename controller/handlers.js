@@ -40,11 +40,12 @@ handlers.showHomePage = async (req, res) => {
     for (let i = 0; i < products.length; i++) {
         htmlProducts += `
         <div class="card m-2" style="width: 18rem;">
-                <img style="width: '200px'" src="/public/images/${products[i].imgsrc}" class="card-img-top" alt="...">
+                <img style="width: 238px; height: 264px;" src="/public/images/${products[i].imgsrc}" class="card-img-top" alt="...">
                 <div class="card-body">
                     <h5 class="card-title">${products[i].name}</h5>
+                    <p class="card-title">Size ${products[i].nameCategories}</p>
                     <p class="card-text">${products[i].priceCategories.toLocaleString('en-US')}</p>
-                    <div>${modalAddCart.str(products[i].idProduct, products[i].name, products[i].nameCategories)}
+                    <div>${modalAddCart.str(products[i].idProduct, products[i].name, products[i].nameCategories, products[i].amount)}
                 </div>
             </div>
         `
@@ -72,7 +73,7 @@ handlers.showHomePage = async (req, res) => {
             html = await getTemplate.readHtml('./view/home.html');
             html = html.replace('{hidden-logout}', 'hidden');
             html = html.replace('{hidden-cart}', 'hidden');
-            html = html.replace('{list-product', htmlProducts);
+            html = html.replace('{list-product}', htmlProducts);
             sessionCheck.check(html, req, res);
         })
 }
@@ -206,7 +207,7 @@ handlers.showAllProduct = async (req, res) => {
     product[0].forEach(p => {
 
         htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories.toLocaleString('en-US')}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td>
-        <td>${modalAddCart.str(p.idProduct, p.name, p.nameCategories)}</td></tr>`
+        <td>${modalAddCart.str(p.idProduct, p.name, p.nameCategories, p.amount)}</td></tr>`
 
     });
     let cookies = req.headers.cookie;
@@ -244,18 +245,22 @@ handlers.showAllProductAdmin = async (req, res) => {
 }
 
 handlers.showEditProductAdmin = async (id, req, res) => {
-    let sql = `select idProduct, name, amount, imgsrc, idCategories from product where idProduct = ${id}`
+    let sql = `select p.idProduct, p.name, p.amount, p.imgsrc, p.idCategories, c.nameCategories from product as p
+    join categories as c on c.idCategories = p.idCategories
+    where idProduct = ${id}`
     let data = await query.selectProduct(sql);
-    let name = data[0].name;
-    let amount = data[0].amount;
-    let imgsrc = data[0].imgsrc;
-    let idCategories = data[0].idCategories;
+    let name = data[data.length - 1].name;
+    let amount = data[data.length - 1].amount;
+    let imgsrc = data[data.length - 1].imgsrc;
+    let idCategories = data[data.length - 1].idCategories;
+    let nameCategories = data[data.length - 1].nameCategories;
 
     let html = await getTemplate.readHtml('./view/admin/editProduct.html');
     html = html.replace("{name-default}", name);
     html = html.replace("{amount-default}", amount);
     html = html.replace("{imgsrc-default}", imgsrc);
     html = html.replace("{idCategory-default}", idCategories);
+    html = html.replace("{nameCategory-default}", nameCategories);
 
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.write(html);
@@ -293,26 +298,37 @@ handlers.editProductAdmin = async (id, req, res) => {
                         let allProduct = await query.selectProduct(sqlAllProduct);
 
                         let isNameExist = false;
-                        for (let i of allProduct) {
-
-                            if (fields.name == i.name) {
+                        let index = 0;
+                        for (let i = 0; i < allProduct.length; i++) {
+                            if (allProduct[i].idProduct == id) {
+                                index = i;
+                            }
+                        }
+                        for (let i = 0; i < allProduct.length; i++) {
+                            if (fields.name == allProduct[i].name && fields.idCategory == allProduct[i].idCategories && i != index) {
                                 isNameExist = true;
                                 break;
                             }
                         }
 
                         if (!isNameExist) {
-                            let sqlAddProduct = `call addProduct("${fields.name}", "${fields.amount}","${newImg}", "${fields.idCategory}")`
-                            await query.selectProduct(sqlAddProduct);
+                            let updateProductSql = `update product set name = "${fields.name}", amount = '${fields.amount}', imgsrc = "${newImg}", idCategories = ${fields.idCategory} where idProduct = ${id}`
+                            await query.selectProduct(updateProductSql).catch((err) => {
+                                console.log(err);
+                            });
                             html = await getTemplate.readHtml('./view/admin/showProduct.html');
 
                             res.writeHead(301, { 'Location': '/admin-product' });
                             res.write(html);
                             res.end();
                         } else {
+                            console.log(123);
                             html = await getTemplate.readHtml('./view/admin/addProduct.html');
                             html = html.replace('{isValidName}', 'is-invalid');
                             html = html.replace('{feedback-name}', 'This product is exist. Please try again');
+                            html = html.replace('{hidden-login}', 'hidden');
+                            html = html.replace('{hidden-sigup}', 'hidden');
+                            html = html.replace('{hidden-cart}', 'hidden');
                             res.writeHead(400, { 'Content-Type': 'text/html' });
                             res.write(html);
                             res.end();
@@ -534,7 +550,7 @@ handlers.showCart = async (req, res) => {
         join product as p on od.idProduct = p.idProduct
         join categories as c on c.idCategories = p.idCategories
         join account as a on a.idAccount = tOrder.idAccount
-        ) as T where T.idAccount = '${idAccount}' and T.statusPayment = 'cart';`
+        ) as T where T.idAccount = ${idAccount} and T.statusPayment = 'cart';`
     let htmlP = '';
     let htmlPayment = ''
     query.selectProduct(dataCartSql)
@@ -548,10 +564,10 @@ handlers.showCart = async (req, res) => {
                     <td>${result[i].name}</td>
                     <td>${result[i].nameCategories}</td>
                     <td><img style="width: 200px;" src="/public/images/${result[i].imgsrc}"></td>
-                    <td>${result[i].priceCategories}</td>
+                    <td>${result[i].priceCategories.toLocaleString('en-US')}</td>
                     <td>${result[i].amountProduct}</td>
                     <td>${result[i].statusPayment}</td>
-                    <td>${modalEditCart.str(result[i].idProduct, result[i].idOrder, result[i].name, result[i].nameCategories)}</td>
+                    <td>${modalEditCart.str(result[i].idProduct, result[i].idOrder, result[i].name, result[i].nameCategories, result[i].amount)}</td>
                 </tr>
                 `
             }
@@ -606,9 +622,11 @@ handlers.addCart = async (req, res) => {
                 let cartOrderSql = `call addCartOrder(${idAccount}, 'cart')`;
                 await query.selectProduct(cartOrderSql);
                 let idOrder = await query.selectProduct(`select idOrder from torder`);
-                idOrder = idOrder[result.length - 1].idOrder;
+                idOrder = idOrder[idOrder.length - 1].idOrder;
+
                 let cartOrderDetailSql = `call addCartOrderDetail('${idOrder}', '${data.id}', '${data.amount}')`;
-                await query.selectProduct(cartOrderDetailSql);
+                let a = await query.selectProduct(cartOrderDetailSql);
+
                 res.writeHead(301, { 'Location': '/user-product' });
                 res.end();
             } else if (result.length > 0 && result[result.length - 1].statusPayment == 'cart') {
@@ -624,8 +642,8 @@ handlers.addCart = async (req, res) => {
                         isIdProductExist = false;
                     }
                 }
-                if (isIdProductExist == false) {
 
+                if (isIdProductExist == false) {
                     let addOrderDetail = `call addCartOrderDetail('${idOrder2}', '${data.id}', '${data.amount}')`;
                     await query.selectProduct(addOrderDetail);
                     res.writeHead(301, { 'Location': '/cart' });
@@ -638,7 +656,7 @@ handlers.addCart = async (req, res) => {
                     if (result.length == 0) {
                         let cartOrderDetailSql = `call addCartOrderDetail('${idOrder}', '${data.id}', '${data.amount}')`;
                         await query.selectProduct(cartOrderDetailSql);
-                        res.writeHead(301, { 'Location': '/user-product' });
+                        res.writeHead(301, { 'Location': '/cart' });
                         res.end();
                     } else {
                         let addProductInCartSql = `update orderDetail set amountProduct = (amountProduct + '${data.amount}') where idOrder = '${idOrder}' and idProduct = '${data.id}'`;
@@ -646,7 +664,6 @@ handlers.addCart = async (req, res) => {
                         res.writeHead(301, { 'Location': '/cart' });
                         res.end();
                     }
-
                 }
             }
         });
@@ -679,8 +696,12 @@ handlers.payment = async (idOrder, req, res) => {
     // update Storage
     let updateStorageSql = `select idProduct, amountProduct from orderDetail where idOrder = ${idOrder}`;
     let dataUpdateStorage = await query.selectProduct(updateStorageSql);
-    dataUpdateStorage = dataUpdateStorage[0];
-    let editStorageSql = `update product set amount = (amount - ${dataUpdateStorage.amountProduct}) where idProduct = ${dataUpdateStorage.idProduct}`;
+    let editStorageSql = '';
+    for (let i = 0; i < dataUpdateStorage.length; i++) {
+        editStorageSql = `update product set amount = (amount - ${dataUpdateStorage[i].amountProduct}) where idProduct = ${dataUpdateStorage[i].idProduct}`;
+        await query.selectProduct(editStorageSql);
+    }
+
 
     // update Status Payment
     let updateStatusPaymentSql = `update tOrder set statusPayment = 'paid' where idOrder = ${idOrder}`;
