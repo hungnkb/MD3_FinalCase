@@ -40,7 +40,7 @@
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="/admin-user">User Manager</a></li>
                             <li><a class="dropdown-item" href="/admin-product">Product Manager</a></li>
-                            <li class="dropdown-item"><a class="nav-link" href="/admin-financial-report">Financial Report</a></li>
+                            <li><a class="dropdown-item" href="/admin-financial-report">Financial Report</a></li>
                         </ul>
                     </li>
                   
@@ -53,11 +53,11 @@
                     </button>
                 </form>
 
-                <a href="/register"><button {hidden-register} type="button" class="btn btn-outline-warning"
+                <a href="/register"><button hidden type="button" class="btn btn-outline-warning"
                         style="margin-left: 5px;">Signup</button></a>
             </div>
 
-            <a href="/login"><button {hidden-login} type="button" class="btn btn-outline-success"
+            <a href="/login"><button hidden type="button" class="btn btn-outline-success"
                     style="margin-left: 5px;">Login</button></a>
 
             <a href="/logout"><button {hidden-logout} type="button" class="btn btn-outline-dark"
@@ -81,7 +81,7 @@
             <div class="d-inline col md-4">
                 <label for="validationServerUsername" class="form-label">Name</label>
                 <div class="input-group has-validation">
-                    <input type="text" class="form-control {isValidName}" placeholder="{name-default}" name="name"
+                    <input type="text" class="form-control {isValidName}" value="{name-default}" name="name"
                         id="validationServerUsername"
                         aria-describedby="inputGroupPrepend3 validationServerUsernameFeedback" required>
                     <div id="validationServerUsernameFeedback" class="invalid-feedback">
@@ -91,12 +91,12 @@
             </div>
             <div class="col-md-4">
                 <label for="" class="form-label">Amount</label>
-                <input type="number" class="form-control" id="" placeholder="{amount-default}" name="amount">
+                <input type="number" class="form-control" id="" value="{amount-default}" name="amount">
             </div>
             <div class="col-md-4">
                 <label for="" class="form-label">Category</label>
                 <select name="idCategory" class="form-select" aria-label="Default select example">
-                    <option selected>{idCategory-default}</option>
+                    <option value="{idCategory-default}" selected>{nameCategory-default}</option>
                     <option value="4">S</option>
                     <option value="5">M</option>
                     <option value="6">L</option>
