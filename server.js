@@ -96,10 +96,12 @@ const server = http.createServer(async (req, res) => {
                     handlers.showAllUserAdmin(req, res);
                 }
                 break;
-            case '/editUser':
+            case '/showEditUser':
                 let editIdAccount = getUrl.query.id;
                 if (req.method == 'GET') {
-                    handlers.editUser(editIdAccount, req,res);
+                    handlers.showEditUser(editIdAccount, req, res);
+                } else {
+                    handlers.editUser(editIdAccount, req, res);
                 }
                 break;
             case '/cart':
