@@ -231,7 +231,7 @@ handlers.showAllProductAdmin = async (req, res) => {
         htmlP += `<tr><td>${p.idProduct}</td><td>${p.name}</td><td>${p.nameCategories}</td><td>${p.priceCategories.toLocaleString('en-US')}</td><td><img style="width: 200px;" src="/public/images/${p.imgsrc}"></td>
         <td>${p.amount}</td>
         <td><a href="edit?id=${p.idProduct}"><button type="button"class="btn btn-dark btn-sm">Edit</button></a>  <a href="delete?id=${p.idProduct}">
-        <button type="button"class="btn btn-dark btn-sm">Delete</button></a></td></tr>
+        <button onclick="return confirm('Are you sure?')" type="button"class="btn btn-dark btn-sm">Delete</button></a></td></tr>
         `
     }
     let html = await getTemplate.readHtml('./view/admin/showProduct.html');
@@ -374,7 +374,7 @@ handlers.addProductAdmin = async (req, res) => {
                         res.writeHead(400, { 'Content-Type': 'text/html' });
                         return res.end('File is not correct format: png, jpeg, jpg');
                     } else {
-                        let isProductExist = `select * from product where name = '${fields.name}'`
+                        let isProductExist = `select * from product where name = '${fields.name}' and idCategories = ${fields.idCategory}`
                         let resultCheck = await query.selectProduct(isProductExist);
 
                         if (resultCheck.length == 0) {
@@ -422,7 +422,7 @@ handlers.showAllUserAdmin = async (req, res) => {
             <td>${userList[i].phoneNumber}</td>
             <td>${userList[i].Email}</td>
             <td>${userList[i].Address}</td>
-            <td>user</td>
+            <td>admin</td>
             <td>
             <a href="/showEditUser?id=${userList[i].idAccount}">
             <button type="button"class="btn btn-dark btn-sm">Edit</button></a>  
@@ -441,7 +441,7 @@ handlers.showAllUserAdmin = async (req, res) => {
             <td>${userList[i].phoneNumber}</td>
             <td>${userList[i].Email}</td>
             <td>${userList[i].Address}</td>
-            <td>admin</td>
+            <td>user</td>
             <td>
             <a href="/showEditUser?id=${userList[i].idAccount}">
             <button type="button"class="btn btn-dark btn-sm">Edit</button></a>  
@@ -456,6 +456,61 @@ handlers.showAllUserAdmin = async (req, res) => {
     let html = await getTemplate.readHtml('./view/admin/showUser.html');
     html = html.replace('{user-list}', htmlU);
     sessionCheck.check(html, req, res)
+}
+
+handlers.showAddUser = async (req, res) => {
+    let html = await getTemplate.readHtml('./view/admin/addUser.html');
+    await sessionCheck.check(html, req, res);
+}
+
+handlers.addUser = async (req, res) => {
+    let data = '';
+    req.on('data', chunk => {
+        data += chunk;
+    })
+    req.on('end', async () => {
+        data = qs.parse(data);
+        let result = await checkUserNameEmail.check(data.username, data.email);
+        switch (result) {
+            case 0:
+                let sqlAddUser = `call addUser("${data.name}","${data.username}", "${data.password}", "${data.phone}", "${data.email}", "${data.address}");`
+
+                await query.selectProduct(sqlAddUser);
+                res.writeHead(301, { 'Location': '/login' });
+                res.end();
+                break;
+            case 1:
+                html = html.replace('{isValidUsername}', 'is-invalid');
+                html = html.replace('{feedback-user}', 'This username is exist, please try again.');
+                res.writeHead(400, { 'Content-Type': 'text/html' });
+                res.write(html);
+                res.end();
+                break;
+            case 2:
+                html = html.replace('{isValidEmail}', 'is-invalid');
+                html = html.replace('{feedback-email}', 'This email is exist, please try again.');
+                res.writeHead(400, { 'Content-Type': 'text/html' });
+                res.write(html);
+                res.end();
+                break;
+            case 3:
+                html = html.replace('{isValidEmail}', 'is-invalid');
+                html = html.replace('{isValidUsername}', 'is-invalid');
+                html = html.replace('{feedback-user}', 'This username is exist, please try again.');
+                html = html.replace('{feedback-email}', 'This email is exist, please try again.');
+                res.writeHead(400, { 'Content-Type': 'text/html' });
+                res.write(html);
+                res.end();
+                break;
+        }
+    })
+}
+
+handlers.deleteUser = async (idAccount, req, res) => {
+    let deleteUserSql = `delete from account where idAccount = ${idAccount}`;
+    await query.selectProduct(deleteUserSql);
+    res.writeHead(301, { 'Location': '/admin-user-manager' });
+    res.end()
 }
 
 handlers.showEditUser = async (editIdAccount, req, res) => {
@@ -621,13 +676,15 @@ handlers.addCart = async (req, res) => {
             if (result.length == 0 || (result.length > 0 && result[result.length - 1].statusPayment == 'paid')) {
                 let cartOrderSql = `call addCartOrder(${idAccount}, 'cart')`;
                 await query.selectProduct(cartOrderSql);
-                let idOrder = await query.selectProduct(`select idOrder from torder`);
+                let idOrder = await query.selectProduct(`select idOrder from torder order by idOrder asc`);
+
                 idOrder = idOrder[idOrder.length - 1].idOrder;
 
-                let cartOrderDetailSql = `call addCartOrderDetail('${idOrder}', '${data.id}', '${data.amount}')`;
-                let a = await query.selectProduct(cartOrderDetailSql);
 
-                res.writeHead(301, { 'Location': '/user-product' });
+                let cartOrderDetailSql = `call addCartOrderDetail(${idOrder}, ${data.id}, ${data.amount})`;
+                await query.selectProduct(cartOrderDetailSql);
+
+                res.writeHead(301, { 'Location': '/cart' });
                 res.end();
             } else if (result.length > 0 && result[result.length - 1].statusPayment == 'cart') {
                 let idOrder2 = await query.selectProduct(`select idOrder from torder where idAccount = ${idAccount}`);
@@ -692,10 +749,22 @@ handlers.editCart = async (req, res) => {
 }
 
 handlers.payment = async (idOrder, req, res) => {
-
-    // update Storage
     let updateStorageSql = `select idProduct, amountProduct from orderDetail where idOrder = ${idOrder}`;
     let dataUpdateStorage = await query.selectProduct(updateStorageSql);
+
+    // check Storage
+    let storageDataSql = `select idProduct, amount from product`;
+    let storageData = await query.selectProduct(storageDataSql);
+    let invalidAmountProduct = []
+    for (let i = 0; i < dataUpdateStorage.length; i++) {
+        for (let j = 0; j < storageData.length; j++) {
+            if (dataUpdateStorage[i].idProduct == storageData[j].idProduct && dataUpdateStorage[i].amountProduct > storageData[j].amountProduct) {
+                invalidAmountProduct.push(dataUpdateStorage[i].idProduct);
+            }
+        }
+    }
+
+    // update Storage
     let editStorageSql = '';
     for (let i = 0; i < dataUpdateStorage.length; i++) {
         editStorageSql = `update product set amount = (amount - ${dataUpdateStorage[i].amountProduct}) where idProduct = ${dataUpdateStorage[i].idProduct}`;

@@ -78,10 +78,10 @@ class checkUserNameEmail {
 
             for (let i in accounts) {
                 if (inputUsername == accounts[i].username && i != index) {
-                 
+
                     resultUsername = 1;
                 } else if (inputEmail == accounts[i].email && i != index) {
-             
+
                     resultEmail = 1;
                 }
             }
