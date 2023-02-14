@@ -96,6 +96,16 @@ const server = http.createServer(async (req, res) => {
                     handlers.showAllUserAdmin(req, res);
                 }
                 break;
+            case '/showAddUser':
+                if (req.method == 'GET') {
+                    handlers.showAddUser(req, res)
+                }
+                break;
+            case '/addUser':
+                if (req.method == 'POST') {
+                    handlers.addUser(req, res);
+                }
+                break;
             case '/showEditUser':
                 let editIdAccount = getUrl.query.id;
                 if (req.method == 'GET') {
@@ -104,9 +114,13 @@ const server = http.createServer(async (req, res) => {
                     handlers.editUser(editIdAccount, req, res);
                 }
                 break;
+            case '/deleteUser':
+                if (req.method == 'GET') {
+                    handlers.deleteUser(getUrl.query.id, req, res);
+                }
+                break;
             case '/cart':
                 handlers.showCart(req, res);
-
                 break;
             case '/addCart':
                 if (req.method == 'POST') {
